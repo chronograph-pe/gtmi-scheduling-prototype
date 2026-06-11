@@ -1,0 +1,735 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GTMI Scheduling Grid — Chronograph prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --chrono-50:#dbefef; --chrono-100:#b8dfe1; --chrono-300:#75bec3;
+  --chrono-600:#0c7e84; --chrono-700:#096268; --chrono-800:#094b4f;
+  --sec-50:#eaebeb; --sec-100:#d6d8d8; --sec-200:#c2c5c5; --sec-300:#aeb3b2;
+  --sec-600:#6c7373; --sec-700:#535959; --sec-900:#292e2e; --sec-1000:#161b1a;
+  --blue-50:#ddedfc; --blue-600:#1d74c4;
+  --lime-50:#cef5d0; --lime-700:#257b37; --lime-800:#1d4d24;
+  --yellow-100:#fdf5d4; --yellow-1000:#2e1300;
+  --red-50:#fce6e6; --red-600:#d43232; --red-700:#aa2121;
+  --accent-600:#755ddb;
+  --bg:#fff; --bg-subtle:#eaebeb;
+  --text:#161b1a; --text-2:#535959; --text-light:#6c7373;
+  --border:#d6d8d8; --border-heavy:#535959;
+  --radius:4px; --radius-pill:32px;
+  --font:'Open Sans',system-ui,sans-serif;
+  --fs-body:14px; --fs-caption:12px; --fs-h1:28px; --fs-h2:20px; --fs-h3:16px;
+  --s2:4px; --s3:8px; --s4:12px; --s5:16px; --s6:24px; --s7:32px;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:var(--font);font-size:var(--fs-body);color:var(--text);background:var(--bg-subtle);}
+
+/* Shell */
+.cg-app{display:grid;grid-template-columns:220px 1fr;grid-template-rows:48px 1fr;height:100vh;overflow:hidden;}
+.cg-topbar{grid-column:1/3;display:flex;align-items:center;gap:var(--s5);padding:0 var(--s6);background:var(--chrono-800);color:#fff;}
+.cg-topbar .brand{font-weight:600;font-size:15px;letter-spacing:.2px;}
+.cg-topbar .spacer{flex:1;}
+.cg-topbar .user{width:26px;height:26px;border-radius:50%;background:var(--chrono-600);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;}
+.cg-nav{background:#fff;border-right:1px solid var(--border);padding:var(--s4) var(--s3);overflow:auto;}
+.cg-nav-section{font-size:11px;color:var(--text-light);font-weight:600;text-transform:uppercase;letter-spacing:.4px;padding:var(--s4) var(--s4) var(--s2);}
+.cg-nav a{display:block;padding:6px var(--s4);border-radius:var(--radius);color:var(--text-2);text-decoration:none;margin-bottom:1px;font-size:var(--fs-body);}
+.cg-nav a:hover{background:var(--sec-50);}
+.cg-nav a.active{background:var(--chrono-50);color:var(--chrono-700);font-weight:600;}
+.cg-content{overflow:hidden;display:flex;flex-direction:column;background:var(--bg-subtle);}
+
+/* Buttons */
+.btn{font:inherit;font-weight:600;border-radius:var(--radius);padding:6px 14px;border:1px solid transparent;cursor:pointer;font-size:var(--fs-body);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.btn-primary{background:var(--chrono-600);color:#fff;} .btn-primary:hover{background:var(--chrono-700);}
+.btn-secondary{background:#fff;color:var(--text);border-color:var(--sec-300);} .btn-secondary:hover{background:var(--sec-50);}
+.btn-ghost{background:transparent;color:var(--text-2);border-color:transparent;} .btn-ghost:hover{background:var(--sec-50);}
+.btn-danger-outline{background:#fff;color:var(--red-600);border-color:var(--red-600);} .btn-danger-outline:hover{background:var(--red-50);}
+.btn-sm{padding:4px 10px;font-size:var(--fs-caption);}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:var(--radius-pill);font-size:var(--fs-caption);font-weight:600;}
+.badge-success{background:var(--lime-50);color:var(--lime-800);}
+.badge-error{background:var(--red-50);color:var(--red-700);}
+.badge-chrono{background:var(--chrono-50);color:var(--chrono-800);}
+.badge-muted{background:var(--sec-50);color:var(--text-light);}
+.badge-info{background:var(--blue-50);color:var(--blue-600);}
+
+/* Page header */
+.page-header{padding:var(--s5) var(--s7) var(--s4);background:#fff;border-bottom:1px solid var(--border);flex-shrink:0;}
+.breadcrumb{font-size:var(--fs-caption);color:var(--text-light);margin-bottom:var(--s2);display:flex;align-items:center;gap:6px;}
+.breadcrumb a{color:var(--chrono-600);text-decoration:none;cursor:pointer;} .breadcrumb a:hover{text-decoration:underline;}
+.page-title-row{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;}
+.page-title{font-size:var(--fs-h2);font-weight:600;margin:0;}
+
+/* Form tabs */
+.form-tabs{display:flex;border-bottom:1px solid var(--border);background:#fff;padding:0 var(--s7);flex-shrink:0;}
+.form-tab{padding:10px var(--s5);color:var(--text-light);cursor:pointer;border-bottom:2px solid transparent;font-size:var(--fs-body);white-space:nowrap;}
+.form-tab:hover{color:var(--text-2);}
+.form-tab.active{color:var(--chrono-700);border-bottom-color:var(--chrono-600);font-weight:600;}
+
+/* Schedule content */
+.schedule-content{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:var(--s5) var(--s7);}
+
+/* Toolbar */
+.toolbar{display:flex;align-items:center;gap:var(--s4);margin-bottom:var(--s4);flex-shrink:0;flex-wrap:wrap;}
+.toolbar-left{display:flex;align-items:center;gap:var(--s3);flex:1;flex-wrap:wrap;}
+.toolbar-right{display:flex;align-items:center;gap:var(--s3);flex-shrink:0;}
+.seg{display:inline-flex;border:1px solid var(--sec-300);border-radius:var(--radius);overflow:hidden;background:#fff;}
+.seg button{font:inherit;font-size:var(--fs-caption);font-weight:600;padding:5px 12px;border:none;background:transparent;cursor:pointer;color:var(--text-2);border-right:1px solid var(--sec-300);}
+.seg button:last-child{border-right:none;}
+.seg button.active{background:var(--chrono-50);color:var(--chrono-700);}
+.seg button:hover:not(.active){background:var(--sec-50);}
+
+/* Filter chips */
+.filter-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:var(--radius-pill);font-size:var(--fs-caption);font-weight:600;cursor:pointer;border:1.5px solid transparent;}
+.fc-all{background:var(--sec-50);color:var(--text-2);}
+.fc-submitted{background:var(--lime-50);color:var(--lime-800);}
+.fc-overdue{background:var(--red-50);color:var(--red-700);}
+.fc-scheduled{background:var(--chrono-50);color:var(--chrono-800);}
+.fc-not-scheduled{background:var(--sec-50);color:var(--text-light);}
+.filter-chip.active-filter{border-color:currentColor;}
+.fc-count{opacity:.7;}
+
+/* Grid */
+.grid-wrapper{flex:1;overflow:auto;border:1px solid var(--border);border-radius:var(--radius);background:#fff;}
+.sched-grid{border-collapse:collapse;width:max-content;min-width:100%;}
+.sched-grid th,.sched-grid td{border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+.sched-grid thead th{background:#fff;position:sticky;top:0;z-index:2;}
+.col-company{position:sticky;left:0;z-index:1;background:#fff;}
+.sched-grid thead .col-company{z-index:3;}
+
+.th-company{padding:var(--s3) var(--s4);text-align:left;color:var(--text-light);font-size:var(--fs-caption);font-weight:600;text-transform:uppercase;letter-spacing:.3px;border-bottom:2px solid var(--sec-100);}
+.th-period{padding:var(--s3) var(--s5);text-align:center;min-width:130px;cursor:pointer;user-select:none;border-bottom:2px solid var(--sec-100);}
+.th-period-inner{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.th-period-label{font-size:var(--fs-caption);font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.3px;}
+.th-period-due{font-size:11px;color:var(--text-light);}
+.select-hint{font-size:10px;color:var(--chrono-600);opacity:0;margin-top:1px;}
+.th-period:hover{background:var(--sec-50);}
+.th-period:hover .select-hint{opacity:1;}
+.th-period.col-selected{background:var(--chrono-50);}
+.th-period.col-selected .th-period-label{color:var(--chrono-700);}
+.th-period.col-selected .select-hint{opacity:1;}
+.period-check{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--sec-300);display:inline-flex;align-items:center;justify-content:center;margin-bottom:2px;}
+.th-period.col-selected .period-check{background:var(--chrono-600);border-color:var(--chrono-600);}
+.check-mark{display:none;width:8px;height:5px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg) translateY(-1px);}
+.th-period.col-selected .check-mark{display:block;}
+
+.td-company{padding:9px var(--s4);background:#fff;}
+.td-company .co-name{font-weight:600;}
+.td-company .co-sector{font-size:var(--fs-caption);color:var(--text-light);margin-top:1px;}
+
+.td-cell{padding:8px var(--s4);text-align:center;min-width:130px;cursor:pointer;}
+.td-cell:hover{filter:brightness(.97);}
+.td-cell.s-submitted{background:var(--lime-50);}
+.td-cell.s-overdue{background:var(--red-50);}
+.td-cell.s-scheduled{background:var(--chrono-50);}
+.td-cell.s-not-scheduled{background:#fff;}
+.td-cell.col-selected{outline:2px solid var(--chrono-300);outline-offset:-2px;}
+.td-cell.s-submitted.col-selected{outline-color:var(--lime-700);}
+.td-cell.s-overdue.col-selected{outline-color:var(--red-600);}
+.td-cell.cell-active{outline:2px solid var(--chrono-600)!important;outline-offset:-2px;}
+
+.cell-badge{display:inline-flex;align-items:center;border-radius:var(--radius-pill);padding:2px 8px;font-size:var(--fs-caption);font-weight:600;}
+.cell-badge.submitted{color:var(--lime-800);}
+.cell-badge.overdue{color:var(--red-700);}
+.cell-badge.scheduled{color:var(--chrono-700);}
+.cell-badge.not-scheduled{color:var(--text-light);font-weight:400;}
+
+.tr-summary{background:var(--sec-50);}
+.td-summary-label{padding:var(--s3) var(--s4);font-size:var(--fs-caption);font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:.3px;position:sticky;left:0;background:var(--sec-50);}
+.td-summary{padding:6px var(--s4);text-align:center;}
+.sum-items{display:flex;flex-direction:column;align-items:center;gap:1px;}
+.sum-item{font-size:11px;font-weight:600;}
+
+/* Bulk bar */
+#bulk-bar{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--sec-1000);color:#fff;border-radius:8px;padding:var(--s4) var(--s5);display:flex;align-items:center;gap:var(--s5);z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.25);min-width:480px;transition:opacity .15s,transform .15s;}
+#bulk-bar.hidden{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(8px);}
+.bb-info{flex:1;}
+.bb-period{font-weight:600;}
+.bb-count{font-size:var(--fs-caption);opacity:.7;margin-top:2px;}
+.bb-btn{font:inherit;font-weight:600;border-radius:var(--radius);padding:6px 14px;border:1px solid transparent;cursor:pointer;font-size:var(--fs-caption);}
+.bb-schedule{background:var(--chrono-600);color:#fff;} .bb-schedule:hover{background:var(--chrono-700);}
+.bb-unschedule{background:transparent;color:#fff;border-color:rgba(255,255,255,.35);} .bb-unschedule:hover{background:rgba(255,255,255,.08);}
+.bb-cancel{background:transparent;border:none;color:rgba(255,255,255,.55);cursor:pointer;font:inherit;padding:6px 8px;font-size:var(--fs-caption);} .bb-cancel:hover{color:#fff;}
+
+/* Detail panel */
+#detail-panel{position:fixed;right:0;top:48px;bottom:0;width:360px;background:#fff;border-left:1px solid var(--border);z-index:50;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .2s ease;box-shadow:-4px 0 16px rgba(0,0,0,.07);}
+#detail-panel.open{transform:translateX(0);}
+.dp-header{padding:var(--s5) var(--s6);border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;}
+.dp-company{font-size:var(--fs-h3);font-weight:600;margin:0 0 3px;}
+.dp-period-label{font-size:var(--fs-caption);color:var(--text-light);}
+.dp-close{background:none;border:none;cursor:pointer;color:var(--text-light);font-size:18px;padding:0;line-height:1;}
+.dp-close:hover{color:var(--text);}
+.dp-body{padding:var(--s6);flex:1;overflow:auto;}
+.dp-field{margin-bottom:var(--s5);}
+.dp-label{font-size:var(--fs-caption);color:var(--text-light);font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-bottom:var(--s2);}
+.dp-value{font-size:var(--fs-body);color:var(--text);}
+.dp-value a{color:var(--chrono-600);text-decoration:none;} .dp-value a:hover{text-decoration:underline;}
+.dp-divider{border:none;border-top:1px solid var(--border);margin:var(--s4) 0;}
+.dp-footer{padding:var(--s4) var(--s6);border-top:1px solid var(--border);display:flex;gap:var(--s3);}
+
+/* Toast */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--sec-900);color:#fff;padding:10px var(--s5);border-radius:var(--radius);font-size:var(--fs-caption);z-index:200;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;box-shadow:0 2px 12px rgba(0,0,0,.2);}
+#toast.show{opacity:1;}
+
+/* Task list */
+.list-header{padding:var(--s6) var(--s7) var(--s5);background:#fff;border-bottom:1px solid var(--border);flex-shrink:0;}
+.list-title-row{display:flex;align-items:center;gap:var(--s4);margin-bottom:var(--s4);}
+.list-body{flex:1;overflow:auto;padding:var(--s5) var(--s7);}
+.cg-input{font:inherit;padding:7px 10px;border:1px solid var(--sec-300);border-radius:var(--radius);font-size:var(--fs-body);width:280px;}
+.cg-input:focus{outline:none;border-color:var(--chrono-600);}
+.cg-select{font:inherit;padding:6px 10px;border:1px solid var(--sec-300);border-radius:var(--radius);font-size:var(--fs-body);background:#fff;cursor:pointer;}
+.cg-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);}
+table.cg-table{width:100%;border-collapse:collapse;}
+.cg-table th,.cg-table td{padding:10px var(--s4);border-bottom:1px solid var(--border);text-align:left;}
+.cg-table th{font-size:var(--fs-caption);color:var(--text-light);font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
+.cg-table tbody tr:hover td{background:var(--sec-50);cursor:pointer;}
+.cg-table tr:last-child td{border-bottom:none;}
+.task-link{color:var(--chrono-600);font-weight:600;text-decoration:none;cursor:pointer;} .task-link:hover{text-decoration:underline;}
+
+/* Misc */
+.hidden{display:none!important;}
+tr.row-filtered{display:none;}
+</style>
+</head>
+<body>
+<div class="cg-app">
+
+  <header class="cg-topbar">
+    <span class="brand">Chronograph</span>
+    <div class="spacer"></div>
+    <div class="user">AF</div>
+  </header>
+
+  <nav class="cg-nav">
+    <div class="cg-nav-section">GP</div>
+    <a href="#">Dashboard</a>
+    <a href="#">Portfolio</a>
+    <a href="#">Funds</a>
+    <a class="active" href="#">Global Tasks</a>
+    <div class="cg-nav-section">Tools</div>
+    <a href="#">Valuations</a>
+    <a href="#">Reporting</a>
+    <a href="#">Data Ops</a>
+  </nav>
+
+  <div class="cg-content" id="main-content">
+
+    <!-- SCREEN 1: Task list -->
+    <div id="screen-list" style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
+      <div class="list-header">
+        <div class="list-title-row">
+          <h1 style="font-size:var(--fs-h2);font-weight:600;margin:0;">Global Tasks</h1>
+          <button class="btn btn-primary btn-sm">+ New task</button>
+        </div>
+        <div style="display:flex;gap:var(--s3);align-items:center;">
+          <input class="cg-input" placeholder="Search tasks..." />
+          <select class="cg-select"><option>All types</option><option>Collect</option><option>Valuation</option></select>
+          <select class="cg-select"><option>All statuses</option><option>Active</option><option>Draft</option></select>
+        </div>
+      </div>
+      <div class="list-body">
+        <div class="cg-card" style="padding:0;">
+          <table class="cg-table">
+            <thead><tr>
+              <th>Task name</th><th>Type</th><th>Frequency</th><th>Companies</th><th>Status</th><th>Created</th>
+            </tr></thead>
+            <tbody>
+              <tr onclick="showTaskForm()">
+                <td><span class="task-link">Annual Portfolio Monitoring Survey</span></td>
+                <td>Collect</td><td>Quarterly</td><td>12</td>
+                <td><span class="badge badge-chrono">Active</span></td>
+                <td style="color:var(--text-light);">Mar 12, 2024</td>
+              </tr>
+              <tr>
+                <td><span class="task-link">Q3 2026 Operating KPI Survey</span></td>
+                <td>Collect</td><td>Annual</td><td>15</td>
+                <td><span class="badge badge-chrono">Active</span></td>
+                <td style="color:var(--text-light);">Jan 8, 2025</td>
+              </tr>
+              <tr>
+                <td><span class="task-link">Capital Activity Report</span></td>
+                <td>Collect</td><td>Annual</td><td>8</td>
+                <td><span class="badge badge-chrono">Active</span></td>
+                <td style="color:var(--text-light);">Jun 3, 2024</td>
+              </tr>
+              <tr>
+                <td><span class="task-link">Q2 2026 Board Presentation Data</span></td>
+                <td>Collect</td><td>One-time</td><td>5</td>
+                <td><span class="badge badge-muted">Draft</span></td>
+                <td style="color:var(--text-light);">May 29, 2026</td>
+              </tr>
+              <tr>
+                <td><span class="task-link">LP Co-Investment KYC Refresh</span></td>
+                <td>Collect</td><td>One-time</td><td>3</td>
+                <td><span class="badge badge-muted">Draft</span></td>
+                <td style="color:var(--text-light);">May 15, 2026</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 2-5: Task form -->
+    <div id="screen-form" class="hidden" style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
+
+      <div class="page-header">
+        <div class="breadcrumb">
+          <a onclick="showTaskList()">Global Tasks</a>
+          <span>/</span>
+          <span>Annual Portfolio Monitoring Survey</span>
+        </div>
+        <div class="page-title-row">
+          <h1 class="page-title">Annual Portfolio Monitoring Survey</h1>
+          <span class="badge badge-chrono">Quarterly</span>
+          <span class="badge badge-chrono">Active</span>
+          <div style="flex:1;"></div>
+          <button class="btn btn-secondary btn-sm">Duplicate</button>
+          <button class="btn btn-primary btn-sm">Save</button>
+        </div>
+      </div>
+
+      <div class="form-tabs">
+        <div class="form-tab" onclick="switchTab(this)">Structure</div>
+        <div class="form-tab" onclick="switchTab(this)">Companies</div>
+        <div class="form-tab" onclick="switchTab(this)">Assignments</div>
+        <div class="form-tab active" onclick="switchTab(this)">Schedule</div>
+        <div class="form-tab" onclick="switchTab(this)">Summary</div>
+      </div>
+
+      <!-- Schedule tab -->
+      <div id="tab-schedule" class="schedule-content">
+        <div class="toolbar">
+          <div class="toolbar-left" id="filter-chips"></div>
+          <div class="toolbar-right">
+            <div class="seg">
+              <button class="active" onclick="setView('grid',this)">Grid</button>
+              <button onclick="setView('list',this)">List</button>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="showToast('Existing drawer — prototype focuses on grid view')">Adjust scheduled periods</button>
+          </div>
+        </div>
+        <div class="grid-wrapper">
+          <table class="sched-grid" id="sched-grid"></table>
+        </div>
+      </div>
+
+      <!-- Placeholder for other tabs -->
+      <div id="tab-other" class="hidden" style="padding:var(--s6) var(--s7);color:var(--text-light);">
+        Select the Schedule tab to view the scheduling grid.
+      </div>
+
+    </div><!-- /screen-form -->
+  </div><!-- /cg-content -->
+</div><!-- /cg-app -->
+
+<!-- Detail panel -->
+<div id="detail-panel">
+  <div class="dp-header">
+    <div>
+      <div class="dp-company" id="dp-company"></div>
+      <div class="dp-period-label" id="dp-period"></div>
+    </div>
+    <button class="dp-close" onclick="closeDetail()">&#x2715;</button>
+  </div>
+  <div class="dp-body" id="dp-body"></div>
+  <div class="dp-footer" id="dp-footer"></div>
+</div>
+
+<!-- Bulk action bar -->
+<div id="bulk-bar" class="hidden">
+  <div class="bb-info">
+    <div class="bb-period" id="bb-period-label"></div>
+    <div class="bb-count" id="bb-count-label"></div>
+  </div>
+  <button class="bb-btn bb-schedule" onclick="doBulkAction('schedule')">Schedule all</button>
+  <button class="bb-btn bb-unschedule" onclick="doBulkAction('unschedule')">Unschedule all</button>
+  <button class="bb-cancel" onclick="clearColumnSelection()">Clear selection</button>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────
+const companies = [
+  {id:1,  name:'Brightline Health',        sector:'Healthcare'},
+  {id:2,  name:'Meridian Logistics',       sector:'Industrials'},
+  {id:3,  name:'Northwind Software',       sector:'Technology'},
+  {id:4,  name:'Cedar Foods Holdings',     sector:'Consumer'},
+  {id:5,  name:'Harborview Capital',       sector:'Financial Services'},
+  {id:6,  name:'Arcadia Infrastructure',   sector:'Infrastructure'},
+  {id:7,  name:'Summit Industrial',        sector:'Industrials'},
+  {id:8,  name:'Coastal Renewables',       sector:'Energy'},
+  {id:9,  name:'Ridgeline Technology',     sector:'Technology'},
+  {id:10, name:'Apex Healthcare Partners', sector:'Healthcare'},
+  {id:11, name:'Clearwater Media',         sector:'Media'},
+  {id:12, name:'Vantage Precision',        sector:'Industrials'},
+];
+
+const periods = [
+  {id:'q1-25', label:'Q1 2025', dueShort:'May 15, 2025', due:'Due May 15, 2025'},
+  {id:'q2-25', label:'Q2 2025', dueShort:'Aug 15, 2025', due:'Due Aug 15, 2025'},
+  {id:'q3-25', label:'Q3 2025', dueShort:'Nov 15, 2025', due:'Due Nov 15, 2025'},
+  {id:'q4-25', label:'Q4 2025', dueShort:'Feb 15, 2026', due:'Due Feb 15, 2026'},
+  {id:'q1-26', label:'Q1 2026', dueShort:'May 15, 2026', due:'Due May 15, 2026'},
+  {id:'q2-26', label:'Q2 2026', dueShort:'Aug 15, 2026', due:'Due Aug 15, 2026'},
+];
+
+// s=submitted  o=overdue  c=scheduled  n=not-scheduled
+const RAW = {
+  1:  ['s','s','s','s','o','c'],
+  2:  ['s','s','s','o','o','c'],
+  3:  ['s','o','n','n','n','n'],
+  4:  ['s','s','s','s','s','c'],
+  5:  ['s','s','s','s','o','c'],
+  6:  ['s','s','s','s','s','c'],
+  7:  ['s','s','o','n','n','n'],
+  8:  ['s','s','s','s','c','c'],
+  9:  ['s','s','s','s','o','c'],
+  10: ['s','s','n','n','n','n'],
+  11: ['s','o','n','n','n','n'],
+  12: ['s','s','s','o','o','c'],
+};
+const CODE = {s:'submitted',o:'overdue',c:'scheduled',n:'not-scheduled'};
+
+const ASSIGNEES = {
+  1:'Sarah Chen, CFO', 2:'Marcus Webb, VP Finance', 3:'Priya Reddy, Controller',
+  4:'Thomas Burke, CFO', 5:'Jennifer Liu, Finance Director', 6:'Robert Torres, CFO',
+  7:'Amanda Foster, VP Finance', 8:'David Kim, Financial Analyst',
+  9:'Michael Santos, CFO', 10:'(unassigned)', 11:'Laura Chen, Controller',
+  12:'Steven Park, Finance Director',
+};
+
+const SUBMITTED = {
+  1: {'q1-25':'Apr 8, 2025','q2-25':'Jul 12, 2025','q3-25':'Oct 14, 2025','q4-25':'Jan 20, 2026'},
+  2: {'q1-25':'Apr 3, 2025','q2-25':'Jul 9, 2025','q3-25':'Oct 22, 2025'},
+  3: {'q1-25':'Apr 14, 2025'},
+  4: {'q1-25':'Apr 7, 2025','q2-25':'Jul 11, 2025','q3-25':'Nov 2, 2025','q4-25':'Feb 3, 2026','q1-26':'May 8, 2026'},
+  5: {'q1-25':'Apr 18, 2025','q2-25':'Aug 1, 2025','q3-25':'Oct 29, 2025','q4-25':'Jan 28, 2026'},
+  6: {'q1-25':'Apr 11, 2025','q2-25':'Jul 18, 2025','q3-25':'Oct 30, 2025','q4-25':'Jan 14, 2026','q1-26':'Apr 29, 2026'},
+  7: {'q1-25':'Apr 22, 2025','q2-25':'Aug 5, 2025'},
+  8: {'q1-25':'Apr 6, 2025','q2-25':'Jul 7, 2025','q3-25':'Oct 10, 2025','q4-25':'Feb 11, 2026'},
+  9: {'q1-25':'Apr 9, 2025','q2-25':'Jul 14, 2025','q3-25':'Nov 4, 2025','q4-25':'Jan 31, 2026'},
+  10:{'q1-25':'Apr 27, 2025','q2-25':'Aug 12, 2025'},
+  11:{'q1-25':'Apr 16, 2025'},
+  12:{'q1-25':'Apr 5, 2025','q2-25':'Jul 24, 2025','q3-25':'Oct 28, 2025'},
+};
+
+// Mutable working copy
+let grid = {};
+companies.forEach(co => {
+  grid[co.id] = {};
+  periods.forEach((p,i) => { grid[co.id][p.id] = CODE[RAW[co.id][i]]; });
+});
+
+// ── State ─────────────────────────────────────────────────────────
+let selectedColumn = null;
+let activeCell = null;
+let activeFilter = 'all';
+
+// ── Navigation ────────────────────────────────────────────────────
+function showTaskForm() {
+  document.getElementById('screen-list').classList.add('hidden');
+  const f = document.getElementById('screen-form');
+  f.classList.remove('hidden');
+  f.style.display = 'flex';
+}
+function showTaskList() {
+  document.getElementById('screen-list').classList.remove('hidden');
+  document.getElementById('screen-form').classList.add('hidden');
+  clearColumnSelection();
+  closeDetail();
+}
+function switchTab(el) {
+  document.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const isSchedule = el.textContent.trim() === 'Schedule';
+  document.getElementById('tab-schedule').classList.toggle('hidden', !isSchedule);
+  document.getElementById('tab-other').classList.toggle('hidden', isSchedule);
+  if (isSchedule) {
+    document.getElementById('tab-schedule').style.display = 'flex';
+    document.getElementById('tab-schedule').style.flexDirection = 'column';
+  }
+}
+function setView(mode, btn) {
+  document.querySelectorAll('.seg button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (mode === 'list') showToast('List view is the existing scheduling interface');
+}
+
+// ── Grid render ───────────────────────────────────────────────────
+const STATUS_LABEL  = {submitted:'Submitted',overdue:'Overdue',scheduled:'Scheduled','not-scheduled':'—'};
+const STATUS_CSS    = {submitted:'s-submitted',overdue:'s-overdue',scheduled:'s-scheduled','not-scheduled':'s-not-scheduled'};
+const BADGE_CSS     = {submitted:'submitted',overdue:'overdue',scheduled:'scheduled','not-scheduled':'not-scheduled'};
+
+function cellInner(s) {
+  return `<span class="cell-badge ${BADGE_CSS[s]}">${STATUS_LABEL[s]}</span>`;
+}
+
+function buildGrid() {
+  const t = document.getElementById('sched-grid');
+  t.innerHTML = '';
+
+  // Header
+  const thead = document.createElement('thead');
+  const hr = document.createElement('tr');
+  const thCo = document.createElement('th');
+  thCo.className = 'th-company col-company';
+  thCo.textContent = 'Company';
+  hr.appendChild(thCo);
+  periods.forEach(p => {
+    const th = document.createElement('th');
+    th.className = 'th-period';
+    th.id = 'th-' + p.id;
+    th.innerHTML = `<div class="th-period-inner">
+      <div class="period-check"><span class="check-mark"></span></div>
+      <span class="th-period-label">${p.label}</span>
+      <span class="th-period-due">${p.due}</span>
+      <span class="select-hint">Click to select</span>
+    </div>`;
+    th.addEventListener('click', () => toggleColumn(p.id));
+    hr.appendChild(th);
+  });
+  thead.appendChild(hr);
+  t.appendChild(thead);
+
+  // Body
+  const tbody = document.createElement('tbody');
+  companies.forEach(co => {
+    const tr = document.createElement('tr');
+    tr.id = 'row-' + co.id;
+    const tdCo = document.createElement('td');
+    tdCo.className = 'td-company col-company';
+    tdCo.innerHTML = `<div class="co-name">${co.name}</div><div class="co-sector">${co.sector}</div>`;
+    tr.appendChild(tdCo);
+    periods.forEach(p => {
+      const s = grid[co.id][p.id];
+      const td = document.createElement('td');
+      td.className = `td-cell ${STATUS_CSS[s]}`;
+      td.id = `cell-${co.id}-${p.id}`;
+      td.dataset.co = co.id;
+      td.dataset.period = p.id;
+      td.innerHTML = cellInner(s);
+      td.addEventListener('click', e => { e.stopPropagation(); openDetail(co.id, p.id); });
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+
+  // Summary row
+  const sumTr = document.createElement('tr');
+  sumTr.className = 'tr-summary';
+  const lbl = document.createElement('td');
+  lbl.className = 'td-summary-label col-company';
+  lbl.textContent = 'Summary';
+  sumTr.appendChild(lbl);
+  periods.forEach(p => {
+    const td = document.createElement('td');
+    td.className = 'td-summary';
+    td.id = 'sum-' + p.id;
+    sumTr.appendChild(td);
+  });
+  tbody.appendChild(sumTr);
+  t.appendChild(tbody);
+  refreshSummary();
+}
+
+function refreshSummary() {
+  periods.forEach(p => {
+    const c = {submitted:0,overdue:0,scheduled:0,'not-scheduled':0};
+    companies.forEach(co => c[grid[co.id][p.id]]++);
+    const td = document.getElementById('sum-' + p.id);
+    if (!td) return;
+    let h = '<div class="sum-items">';
+    if (c.submitted)       h += `<span class="sum-item" style="color:var(--lime-800)">${c.submitted} submitted</span>`;
+    if (c.overdue)         h += `<span class="sum-item" style="color:var(--red-700)">${c.overdue} overdue</span>`;
+    if (c.scheduled)       h += `<span class="sum-item" style="color:var(--chrono-700)">${c.scheduled} scheduled</span>`;
+    if (c['not-scheduled'])h += `<span class="sum-item" style="color:var(--text-light)">${c['not-scheduled']} unscheduled</span>`;
+    h += '</div>';
+    td.innerHTML = h;
+  });
+}
+
+// ── Filter chips ──────────────────────────────────────────────────
+function buildChips() {
+  const el = document.getElementById('filter-chips');
+  const c = {all:companies.length,submitted:0,overdue:0,scheduled:0,'not-scheduled':0};
+  companies.forEach(co => {
+    const seen = new Set(periods.map(p => grid[co.id][p.id]));
+    ['submitted','overdue','scheduled','not-scheduled'].forEach(s => { if(seen.has(s)) c[s]++; });
+  });
+  const af = activeFilter;
+  el.innerHTML = [
+    ['all','fc-all','All',c.all],
+    ['submitted','fc-submitted','Submitted',c.submitted],
+    ['overdue','fc-overdue','Overdue',c.overdue],
+    ['scheduled','fc-scheduled','Scheduled',c.scheduled],
+    ['not-scheduled','fc-not-scheduled','Not scheduled',c['not-scheduled']],
+  ].map(([f,cls,label,n]) =>
+    `<span class="filter-chip ${cls}${af===f?' active-filter':''}" onclick="setFilter('${f}')">${label} <span class="fc-count">${n}</span></span>`
+  ).join('');
+}
+
+function setFilter(f) {
+  activeFilter = f;
+  buildChips();
+  companies.forEach(co => {
+    const tr = document.getElementById('row-' + co.id);
+    if (!tr) return;
+    const show = f === 'all' || periods.some(p => grid[co.id][p.id] === f);
+    tr.classList.toggle('row-filtered', !show);
+  });
+}
+
+// ── Column selection ──────────────────────────────────────────────
+function toggleColumn(pid) {
+  if (selectedColumn === pid) { clearColumnSelection(); return; }
+  if (selectedColumn) clearColumnSelection(true);
+  selectedColumn = pid;
+  document.getElementById('th-' + pid)?.classList.add('col-selected');
+  companies.forEach(co => document.getElementById(`cell-${co.id}-${pid}`)?.classList.add('col-selected'));
+  updateBulkBar();
+  document.getElementById('bulk-bar').classList.remove('hidden');
+}
+
+function clearColumnSelection(silent) {
+  if (selectedColumn) {
+    document.getElementById('th-' + selectedColumn)?.classList.remove('col-selected');
+    companies.forEach(co => document.getElementById(`cell-${co.id}-${selectedColumn}`)?.classList.remove('col-selected'));
+    selectedColumn = null;
+  }
+  if (!silent) document.getElementById('bulk-bar').classList.add('hidden');
+}
+
+function updateBulkBar() {
+  const p = periods.find(x => x.id === selectedColumn);
+  if (!p) return;
+  const sched = companies.filter(co => ['scheduled','submitted'].includes(grid[co.id][selectedColumn])).length;
+  document.getElementById('bb-period-label').textContent = p.label;
+  document.getElementById('bb-count-label').textContent =
+    `${sched} scheduled or submitted · ${companies.length - sched} not scheduled`;
+}
+
+// ── Bulk action ───────────────────────────────────────────────────
+function doBulkAction(action) {
+  if (!selectedColumn) return;
+  const p = periods.find(x => x.id === selectedColumn);
+  let changed = 0;
+  companies.forEach(co => {
+    const cur = grid[co.id][selectedColumn];
+    const skip = action==='schedule' ? ['scheduled','submitted'].includes(cur) : cur==='not-scheduled';
+    if (!skip) { grid[co.id][selectedColumn] = action==='schedule'?'scheduled':'not-scheduled'; changed++; }
+    refreshCellEl(co.id, selectedColumn, true);
+  });
+  refreshSummary();
+  buildChips();
+  setFilter(activeFilter);
+  const verb = action==='schedule'?'scheduled':'unscheduled';
+  showToast(`Successfully ${verb} ${changed} task${changed===1?'':'s'} for ${p.label}`);
+  clearColumnSelection();
+}
+
+// ── Detail panel ──────────────────────────────────────────────────
+function openDetail(coId, pid) {
+  if (activeCell) document.getElementById(`cell-${activeCell.coId}-${activeCell.pid}`)?.classList.remove('cell-active');
+  activeCell = {coId, pid};
+  const co = companies.find(c => c.id==coId);
+  const p  = periods.find(x => x.id===pid);
+  const s  = grid[coId][pid];
+  const sub = (SUBMITTED[coId]||{})[pid] || null;
+  const daysOver = s==='overdue' ? (Math.floor(Math.random()*38)+8) : 0;
+
+  document.getElementById(`cell-${coId}-${pid}`)?.classList.add('cell-active');
+  document.getElementById('dp-company').textContent = co.name;
+  document.getElementById('dp-period').textContent = `${p.label} · ${p.dueShort}`;
+
+  let body = '<div class="dp-field"><div class="dp-label">Status</div><div class="dp-value">';
+  if (s==='submitted')     body += `<span class="badge badge-success">Submitted</span>`;
+  if (s==='overdue')       body += `<span class="badge badge-error">Overdue &mdash; ${daysOver} days</span>`;
+  if (s==='scheduled')     body += `<span class="badge badge-chrono">Scheduled</span>`;
+  if (s==='not-scheduled') body += `<span class="badge badge-muted">Not scheduled</span>`;
+  body += '</div></div>';
+
+  if (s !== 'not-scheduled') {
+    body += `
+      <div class="dp-field"><div class="dp-label">Assignee</div><div class="dp-value">${ASSIGNEES[coId]}</div></div>
+      <div class="dp-field"><div class="dp-label">Due date</div><div class="dp-value">${p.dueShort}</div></div>`;
+    if (s==='submitted' && sub) {
+      body += `<div class="dp-field"><div class="dp-label">Submitted</div><div class="dp-value">${sub}</div></div>`;
+    } else if (s==='overdue') {
+      body += `<div class="dp-field"><div class="dp-label">Submitted</div><div class="dp-value" style="color:var(--red-700)">Not submitted</div></div>`;
+    }
+  }
+
+  body += `<hr class="dp-divider">
+    <div class="dp-field"><div class="dp-label">Company</div><div class="dp-value">${co.name} &nbsp;&middot;&nbsp; <span style="color:var(--text-light)">${co.sector}</span></div></div>
+    <div class="dp-field"><div class="dp-label">Task</div><div class="dp-value"><a href="#">Annual Portfolio Monitoring Survey &#x2197;</a></div></div>`;
+
+  document.getElementById('dp-body').innerHTML = body;
+
+  const assigneeName = (ASSIGNEES[coId]||'').split(',')[0];
+  let footer = '';
+  if (s==='overdue'||s==='scheduled') {
+    footer += `<button class="btn btn-primary btn-sm" onclick="showToast('Reminder sent to ${assigneeName}')">Send reminder</button>`;
+    footer += `<button class="btn btn-danger-outline btn-sm" onclick="unscheduleOne(${coId},'${pid}')">Unschedule</button>`;
+  } else if (s==='not-scheduled') {
+    footer += `<button class="btn btn-primary btn-sm" onclick="scheduleOne(${coId},'${pid}')">Schedule</button>`;
+  } else {
+    footer += `<button class="btn btn-secondary btn-sm" onclick="showToast('Reminder sent to ${assigneeName}')">Send reminder</button>`;
+  }
+  footer += `<button class="btn btn-ghost btn-sm" onclick="closeDetail()">Close</button>`;
+  document.getElementById('dp-footer').innerHTML = footer;
+  document.getElementById('detail-panel').classList.add('open');
+}
+
+function closeDetail() {
+  if (activeCell) {
+    document.getElementById(`cell-${activeCell.coId}-${activeCell.pid}`)?.classList.remove('cell-active');
+    activeCell = null;
+  }
+  document.getElementById('detail-panel').classList.remove('open');
+}
+
+function unscheduleOne(coId, pid) {
+  grid[coId][pid] = 'not-scheduled';
+  refreshCellEl(coId, pid);
+  refreshSummary(); buildChips(); setFilter(activeFilter);
+  showToast('Task unscheduled'); closeDetail();
+}
+function scheduleOne(coId, pid) {
+  grid[coId][pid] = 'scheduled';
+  refreshCellEl(coId, pid);
+  refreshSummary(); buildChips(); setFilter(activeFilter);
+  showToast('Task scheduled'); closeDetail();
+}
+
+function refreshCellEl(coId, pid, keepColSelected) {
+  const td = document.getElementById(`cell-${coId}-${pid}`);
+  if (!td) return;
+  const s = grid[coId][pid];
+  const colSel = (keepColSelected && selectedColumn===pid) ? ' col-selected' : '';
+  td.className = `td-cell ${STATUS_CSS[s]}${colSel}`;
+  td.innerHTML = cellInner(s);
+  td.addEventListener('click', e => { e.stopPropagation(); openDetail(coId, pid); });
+}
+
+// ── Toast ─────────────────────────────────────────────────────────
+let _toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+buildGrid();
+buildChips();
+</script>
+</body>
+</html>
